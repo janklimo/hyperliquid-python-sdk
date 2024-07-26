@@ -38,7 +38,16 @@ AllMidsSubscription = TypedDict("AllMidsSubscription", {"type": Literal["allMids
 L2BookSubscription = TypedDict("L2BookSubscription", {"type": Literal["l2Book"], "coin": str})
 TradesSubscription = TypedDict("TradesSubscription", {"type": Literal["trades"], "coin": str})
 UserEventsSubscription = TypedDict("UserEventsSubscription", {"type": Literal["userEvents"], "user": str})
-Subscription = Union[AllMidsSubscription, L2BookSubscription, TradesSubscription, UserEventsSubscription]
+UserNonFundingLedgerUpdatesSubscription = TypedDict(
+    "UserNonFundingLedgerUpdatesSubscription", {"type": Literal["userNonFundingLedgerUpdates"], "user": str}
+)
+Subscription = Union[
+    AllMidsSubscription,
+    L2BookSubscription,
+    TradesSubscription,
+    UserEventsSubscription,
+    UserNonFundingLedgerUpdatesSubscription,
+]
 
 AllMidsData = TypedDict("AllMidsData", {"mids": Dict[str, str]})
 AllMidsMsg = TypedDict("AllMidsMsg", {"channel": Literal["allMids"], "data": AllMidsData})
@@ -67,7 +76,113 @@ Fill = TypedDict(
 # TODO: handle other types of user events
 UserEventsData = TypedDict("UserEventsData", {"fills": List[Fill]}, total=False)
 UserEventsMsg = TypedDict("UserEventsMsg", {"channel": Literal["user"], "data": UserEventsData})
-WsMsg = Union[AllMidsMsg, L2BookMsg, TradesMsg, UserEventsMsg, PongMsg]
+
+"""
+userNonFundingLedgerUpdates WebSocket messages
+
+Docs: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+"""
+
+
+class DepositDelta(TypedDict):
+    type: Literal["deposit"]
+    usdc: str
+
+
+class WithdrawDelta(TypedDict):
+    type: Literal["withdraw"]
+    fee: str
+    nonce: int
+    usdc: str
+
+
+class SpotTransferDelta(TypedDict):
+    type: Literal["spotTransfer"]
+    token: str
+    amount: str
+    usdcValue: str
+    user: str
+    destination: str
+    fee: str
+
+
+class SpotGenesisDelta(TypedDict):
+    type: Literal["spotGenesis"]
+    token: str
+    amount: str
+
+
+class InternalTransferDelta(TypedDict):
+    type: Literal["internalTransfer"]
+    destination: str
+    fee: str
+    usdc: str
+    user: str
+
+
+class AccountClassTransferDelta(TypedDict):
+    type: Literal["accountClassTransfer"]
+    toPerp: bool
+    usdc: str
+
+
+class VaultDelta(TypedDict):
+    type: Union[Literal["vaultCreate"], Literal["vaultDeposit"], Literal["vaultDistribution"]]
+    usdc: str
+    vault: str
+
+
+class VaultWithdrawDelta(TypedDict):
+    type: Literal["vaultWithdraw"]
+    basis: str
+    closingCost: str
+    commission: str
+    netWithdrawnUsd: str
+    requestedUsd: str
+    user: str
+    vault: str
+
+
+class LiquidatedPosition(TypedDict):
+    coin: str
+    szi: str
+
+
+class LiquidationDelta(TypedDict):
+    type: Literal["liquidation"]
+    accountValue: str
+    leverageType: Union[Literal["Cross"], Literal["Isolated"]]
+    liquidatedNtlPos: str
+    liquidatedPositions: List[LiquidatedPosition]
+
+
+class NonFundingLedgerUpdate(TypedDict):
+    time: int
+    hash: str
+    delta: Union[
+        DepositDelta,
+        WithdrawDelta,
+        SpotTransferDelta,
+        SpotGenesisDelta,
+        InternalTransferDelta,
+        AccountClassTransferDelta,
+        VaultDelta,
+        VaultWithdrawDelta,
+        LiquidationDelta,
+    ]
+
+
+class UserNonFundingLedgerUpdatesData(TypedDict):
+    user: str
+    nonFundingLedgerUpdates: List[NonFundingLedgerUpdate]
+
+
+class UserNonFundingLedgerUpdatesMsg(TypedDict):
+    channel: Literal["userNonFundingLedgerUpdates"]
+    data: UserNonFundingLedgerUpdatesData
+
+
+WsMsg = Union[AllMidsMsg, L2BookMsg, TradesMsg, UserEventsMsg, UserNonFundingLedgerUpdatesMsg, PongMsg]
 
 
 class Cloid:
