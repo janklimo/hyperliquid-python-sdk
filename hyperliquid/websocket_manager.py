@@ -20,6 +20,8 @@ def subscription_to_identifier(subscription: Subscription) -> str:
         return f'trades:{subscription["coin"].lower()}'
     elif subscription["type"] == "userEvents":
         return "userEvents"
+    elif subscription["type"] == "userNonFundingLedgerUpdates":
+        return "userNonFundingLedgerUpdates"
 
 
 def ws_msg_to_identifier(ws_msg: WsMsg) -> Optional[str]:
@@ -37,6 +39,8 @@ def ws_msg_to_identifier(ws_msg: WsMsg) -> Optional[str]:
             return f'trades:{trades[0]["coin"].lower()}'
     elif ws_msg["channel"] == "user":
         return "userEvents"
+    elif ws_msg["channel"] == "userNonFundingLedgerUpdates":
+        return "userNonFundingLedgerUpdates"
 
 
 class WebsocketManager(threading.Thread):
