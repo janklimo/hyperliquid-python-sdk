@@ -173,6 +173,7 @@ class NonFundingLedgerUpdate(TypedDict):
 
 
 class UserNonFundingLedgerUpdatesData(TypedDict):
+    isSnapshot: NotRequired[bool]
     user: str
     nonFundingLedgerUpdates: List[NonFundingLedgerUpdate]
 
