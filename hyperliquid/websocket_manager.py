@@ -127,8 +127,11 @@ class WebsocketManager(threading.Thread):
         self.ws_ready = False
 
     def on_error(self, _ws, error):
-        self.active_subscriptions = defaultdict(list)
-        logging.error(f"WebSocket error: {error}")
+        if isinstance(error, ConnectionResetError):
+            logging.warning(f"Connection reset by peer: {error}")
+        else:
+            self.active_subscriptions = defaultdict(list)
+            logging.error(f"WebSocket error: {error}")
 
     def subscribe(
         self, subscription: Subscription, callback: Callable[[Any], None], subscription_id: Optional[int] = None
