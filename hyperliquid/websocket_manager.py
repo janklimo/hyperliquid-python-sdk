@@ -118,7 +118,11 @@ class WebsocketManager(threading.Thread):
 
     def on_open(self, _ws):
         logging.debug("on_open")
+        logging.info("Connected to WS server.")
+
+        self.active_subscriptions = defaultdict(list)
         self.ws_ready = True
+
         for subscription, active_subscription in self.queued_subscriptions:
             self.subscribe(subscription, active_subscription.callback, active_subscription.subscription_id)
 
@@ -130,7 +134,6 @@ class WebsocketManager(threading.Thread):
         if isinstance(error, ConnectionResetError):
             logging.warning(f"Connection reset by peer: {error}")
         else:
-            self.active_subscriptions = defaultdict(list)
             logging.error(f"WebSocket error: {error}")
 
     def subscribe(
