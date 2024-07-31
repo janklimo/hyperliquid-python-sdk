@@ -97,24 +97,29 @@ class WebsocketManager(threading.Thread):
                     break
 
     def on_message(self, _ws, message):
-        if message == "Websocket connection established.":
-            logging.debug(message)
-            return
-        logging.debug(f"on_message {message}")
-        ws_msg: WsMsg = json.loads(message)
-        identifier = ws_msg_to_identifier(ws_msg)
-        if identifier == "pong":
-            logging.debug("Websocket received pong")
-            return
-        if identifier is None:
-            logging.debug("Websocket not handling empty message")
-            return
-        active_subscriptions = self.active_subscriptions[identifier]
-        if len(active_subscriptions) == 0:
-            print("Websocket message from an unexpected subscription:", message, identifier)
-        else:
-            for active_subscription in active_subscriptions:
-                active_subscription.callback(ws_msg)
+        try:
+            if message == "Websocket connection established.":
+                logging.debug(message)
+                return
+            logging.debug(f"on_message {message}")
+            ws_msg: WsMsg = json.loads(message)
+            identifier = ws_msg_to_identifier(ws_msg)
+            if identifier == "pong":
+                logging.debug("Websocket received pong")
+                return
+            if identifier is None:
+                logging.debug("Websocket not handling empty message")
+                return
+            active_subscriptions = self.active_subscriptions[identifier]
+            if len(active_subscriptions) == 0:
+                print("Websocket message from an unexpected subscription:", message, identifier)
+            else:
+                for active_subscription in active_subscriptions:
+                    active_subscription.callback(ws_msg)
+        except ConnectionResetError as e:
+            logging.warning(f"on_message: Connection reset by peer: {e}")
+        except Exception as e:
+            logging.error(f"on_message: WebSocket error: {e}")
 
     def on_open(self, _ws):
         logging.debug("on_open")
