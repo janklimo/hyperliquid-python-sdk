@@ -2,6 +2,7 @@ import json
 import logging
 import threading
 import time
+import traceback
 from collections import defaultdict
 
 import websocket
@@ -118,8 +119,10 @@ class WebsocketManager(threading.Thread):
                     active_subscription.callback(ws_msg)
         except ConnectionResetError as e:
             logging.warning(f"on_message: Connection reset by peer: {e}")
+            logging.warning(traceback.format_exc())
         except Exception as e:
             logging.error(f"on_message: WebSocket error: {e}")
+            logging.error(traceback.format_exc())
 
     def on_open(self, _ws):
         logging.debug("on_open")
